@@ -188,7 +188,7 @@ requestAnimationFrame(f)})();
 v.currentTime=0;v.muted=false;mr.start();v.play();msg('Exporting in real time… please wait for the video to finish.');
 v.onended=()=>{go=0;mr.stop()}};
 </script><script type="module">
-import {pipeline} from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2';
+import {pipeline,env} from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2';
 let VF=null;const L={en:'english',es:'spanish',fr:'french',de:'german',hi:'hindi',ur:'urdu',ar:'arabic'};
 $('file').addEventListener('change',e=>{VF=e.target.files[0]});
 $('dz').addEventListener('drop',e=>{VF=e.dataTransfer.files[0]});
@@ -201,7 +201,7 @@ $('gen').onclick=async()=>{
   msg('Reading audio…');
   const ctx=new AudioContext({sampleRate:16000}),buf=await ctx.decodeAudioData(await VF.arrayBuffer());
   let a=buf.getChannelData(0);if(buf.numberOfChannels>1){const r=buf.getChannelData(1);a=a.map((x,i)=>(x+r[i])/2)}
-  if(!asr)asr=await pipeline('automatic-speech-recognition','Xenova/whisper-base',{progress_callback:p=>{if(p.status=='progress')msg('Downloading AI model (first time only): '+Math.round(p.progress)+'%')}});
+  if(!asr){let last;for(const h of ['https://huggingface.co/','https://hf-mirror.com/']){try{env.remoteHost=h;asr=await pipeline('automatic-speech-recognition','Xenova/whisper-base',{progress_callback:p=>{if(p.status=='progress')msg('Downloading AI model (first time only): '+Math.round(p.progress)+'%')}});break}catch(e){last=e;msg('Server '+h+' failed, trying another…')}}if(!asr)throw new Error('Model download blocked on both servers ('+(last&&last.message)+'). Try a VPN, then reload this file.')}
   msg('Transcribing… this can take a few minutes for long videos.');
   const out=await asr(a,{return_timestamps:true,chunk_length_s:30,stride_length_s:5,task:'transcribe',language:L[$('lang').value.slice(0,2)]||'english'});
   segs=[];(out.chunks||[]).forEach(c=>{const s=c.timestamp[0]||0,e=c.timestamp[1]||v.duration;if(c.text.trim())chunk(c.text,s,Math.max(e,s+.5))});
