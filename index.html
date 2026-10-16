@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>AutCap — Free Auto Captions</title>
+<title>AutCap (Offline AI)</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f6f1e7;--sf:#fffdf8;--tx:#17140e;--mu:#6d6556;--gd:#8a6a1f;--ln:#ddd3bd;--bt:#17140e;--bt-tx:#f6f1e7;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -187,4 +187,26 @@ x.shadowColor=a.g?a.h:'rgba(0,0,0,.8)';x.shadowBlur=a.g?fs*.4:a.sh?fs*.2:0;x.fil
 requestAnimationFrame(f)})();
 v.currentTime=0;v.muted=false;mr.start();v.play();msg('Exporting in real time… please wait for the video to finish.');
 v.onended=()=>{go=0;mr.stop()}};
-</script></body></html>
+</script><script type="module">
+import {pipeline} from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2';
+let VF=null;const L={en:'english',es:'spanish',fr:'french',de:'german',hi:'hindi',ur:'urdu',ar:'arabic'};
+$('file').addEventListener('change',e=>{VF=e.target.files[0]});
+$('dz').addEventListener('drop',e=>{VF=e.dataTransfer.files[0]});
+$('gen').textContent='✦ Generate auto captions (offline AI)';
+let asr=null;
+$('gen').onclick=async()=>{
+ if(!VF){msg('Please re-upload the video.');return}
+ const b=$('gen');b.disabled=true;
+ try{
+  msg('Reading audio…');
+  const ctx=new AudioContext({sampleRate:16000}),buf=await ctx.decodeAudioData(await VF.arrayBuffer());
+  let a=buf.getChannelData(0);if(buf.numberOfChannels>1){const r=buf.getChannelData(1);a=a.map((x,i)=>(x+r[i])/2)}
+  if(!asr)asr=await pipeline('automatic-speech-recognition','Xenova/whisper-base',{progress_callback:p=>{if(p.status=='progress')msg('Downloading AI model (first time only): '+Math.round(p.progress)+'%')}});
+  msg('Transcribing… this can take a few minutes for long videos.');
+  const out=await asr(a,{return_timestamps:true,chunk_length_s:30,stride_length_s:5,task:'transcribe',language:L[$('lang').value.slice(0,2)]||'english'});
+  segs=[];(out.chunks||[]).forEach(c=>{const s=c.timestamp[0]||0,e=c.timestamp[1]||v.duration;if(c.text.trim())chunk(c.text,s,Math.max(e,s+.5))});
+  list();draw();show=true;msg(segs.length?'Done! '+segs.length+' captions. Pick a style and tweak the text.':'No speech found in this video.');
+ }catch(err){msg('Error: '+(err.message||err)+' (needs internet once to download the model)')}
+ b.disabled=false};
+</script>
+</body></html>
