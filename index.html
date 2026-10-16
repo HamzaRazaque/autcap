@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AutCap — Free Auto Captions</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f1e7;--sf:#fffdf8;--tx:#17140e;--mu:#6d6556;--gd:#8a6a1f;--ln:#ddd3bd;--bt:#17140e;--bt-tx:#f6f1e7;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0a08;--sf:#15130f;--tx:#f3ecdc;--mu:#a39a86;--gd:#d4af62;--ln:#2c271d;--bt:#d4af62;--bt-tx:#14100a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b0a08;--sf:#15130f;--tx:#f3ecdc;--mu:#a39a86;--gd:#d4af62;--ln:#2c271d;--bt:#d4af62;--bt-tx:#14100a;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 Inter,system-ui,sans-serif}
+h1,h2,h3,.serif{font-family:'Playfair Display',Georgia,'Times New Roman',serif;font-weight:900;letter-spacing:-.02em;margin:0}
+header{display:flex;justify-content:space-between;align-items:center;padding:20px clamp(16px,4vw,48px);border-bottom:1px solid var(--ln)}
+.logo{font:900 28px 'Playfair Display',Georgia,serif}.logo i{color:var(--gd)}
+button{font:inherit;cursor:pointer;border:1px solid var(--ln);background:var(--sf);color:var(--tx);padding:9px 16px;border-radius:8px}
+button.p{background:var(--bt);color:var(--bt-tx);border-color:var(--bt);font-weight:600}
+button.on{border-color:var(--gd);color:var(--gd)}
+.hero{max-width:900px;margin:0 auto;padding:clamp(40px,8vw,90px) 20px 30px;text-align:center}
+.hero h1{font-size:clamp(40px,8vw,84px);line-height:1}.hero h1 em{color:var(--gd)}
+.hero p{color:var(--mu);font-size:18px;max-width:560px;margin:18px auto 28px}
+.drop{max-width:640px;margin:0 auto;border:2px dashed var(--gd);border-radius:14px;padding:36px 20px;background:var(--sf)}
+.drop h3{font-size:24px;margin-bottom:6px}.drop span{color:var(--mu);font-size:14px}
+.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;max-width:900px;margin:30px auto;padding:0 20px}
+.feat div{border-top:2px solid var(--gd);padding-top:10px}.feat b{font-family:'Playfair Display',Georgia,serif;font-size:19px}.feat p{margin:4px 0;color:var(--mu);font-size:14px}
+#ed{display:none;max-width:1200px;margin:0 auto;padding:20px;grid-template-columns:minmax(0,1.6fr) minmax(300px,1fr);gap:20px}
+#ed.show{display:grid}@media(max-width:860px){#ed.show{grid-template-columns:1fr}}
+.stage{position:relative;background:#000;border-radius:12px;overflow:hidden;container-type:inline-size}
+video{width:100%;display:block;max-height:70vh}
+#cap{position:absolute;left:50%;transform:translate(-50%,-50%);width:90%;text-align:center;pointer-events:none;line-height:1.25;font-size:calc(var(--s,5)*1cqw)}
+#cap span{display:inline;padding:0 .12em}
+.bar{display:flex;gap:10px;align-items:center;margin-top:10px}.bar input{flex:1}
+.t{font-variant-numeric:tabular-nums;color:var(--mu);font-size:13px;min-width:92px;text-align:right}
+.panel{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.panel h2{font-size:22px}label,.lb{font-size:13px;color:var(--mu);display:flex;justify-content:space-between;gap:10px;align-items:center}
+input[type=range]{accent-color:var(--gd);width:100%}input[type=color]{width:44px;height:30px;border:1px solid var(--ln);background:none;padding:0}
+select,textarea,.row input[type=text],.row input[type=number]{width:100%;background:var(--bg);color:var(--tx);border:1px solid var(--ln);border-radius:6px;padding:7px;font:inherit}
+.styles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sc{background:#111;border-radius:8px;height:62px;display:flex;align-items:center;justify-content:center;font-size:15px;border:2px solid transparent;padding:0;overflow:hidden;color:#fff}
+.sc.sel{border-color:var(--gd)}.sn{font-size:11px;color:var(--mu);text-align:center;margin-top:2px}
+.flex{display:flex;gap:8px;flex-wrap:wrap}#list{max-height:240px;overflow:auto;display:flex;flex-direction:column;gap:6px}
+.row{display:grid;grid-template-columns:62px 62px 1fr 28px;gap:5px}.row button{padding:0}
+#msg{font-size:13px;color:var(--gd);min-height:18px}
+.ic{position:relative;width:42px;height:42px;padding:0;border-radius:50%;overflow:hidden;color:var(--gd)}
+.ic svg{position:absolute;inset:0;margin:auto;transition:transform .7s cubic-bezier(.5,1.6,.4,1),opacity .4s}
+.moon{opacity:0;transform:rotate(-120deg) scale(.3)}
+:root[data-theme="dark"] .sun{opacity:0;transform:rotate(120deg) scale(.3)}:root[data-theme="dark"] .moon{opacity:1;transform:none}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .sun{opacity:0;transform:rotate(120deg) scale(.3)}:root:not([data-theme="light"]) .moon{opacity:1;transform:none}}
+.ic:hover svg.sun,.ic:hover svg.moon{filter:drop-shadow(0 0 6px var(--gd))}
+.sw{width:22px;height:22px;border-radius:50%;border:1px solid var(--ln);cursor:pointer;display:inline-block;transition:transform .2s}.sw:hover{transform:scale(1.25)}
+@keyframes up{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@keyframes sl{from{opacity:0;transform:translateX(34px)}to{opacity:1;transform:none}}
+@keyframes fl{50%{transform:translateY(-7px)}}
+@keyframes sh{to{background-position:200% center}}
+@keyframes pu{0%{box-shadow:0 0 0 0 rgba(212,175,98,.55)}100%{box-shadow:0 0 0 14px rgba(212,175,98,0)}}
+body,header,.panel,.drop,select,textarea{transition:background-color .6s,color .6s,border-color .6s}
+header{animation:up .6s both}
+.hero h1{animation:up .9s both}.hero p{animation:up .9s .15s both}.drop{animation:up .9s .3s both,fl 4.5s 1.3s ease-in-out infinite}
+.feat div{animation:up .8s .5s both}.feat div:nth-child(2){animation-delay:.65s}.feat div:nth-child(3){animation-delay:.8s}.feat div:nth-child(4){animation-delay:.95s}
+.logo i,.hero h1 em{background:linear-gradient(90deg,var(--gd),var(--tx),var(--gd));background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sh 4s linear infinite}
+#ed.show>div:first-child{animation:up .7s both}.panel{animation:sl .7s .1s both}
+button{transition:transform .2s,background-color .4s,border-color .4s,color .4s,box-shadow .3s}button:hover{transform:translateY(-2px)}button:active{transform:scale(.95)}
+button.p:hover{box-shadow:0 6px 18px rgba(212,175,98,.35)}#gen{animation:pu 2.2s infinite}
+.sc{transition:transform .2s,border-color .3s}.sc:hover{transform:scale(1.07)}.row{animation:up .4s both}
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<header><div class="logo">Aut<i>Cap</i></div><div class="flex"><button id="th" class="ic" aria-label="Switch day or night"><svg class="sun" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg><svg class="moon" viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg></button><button id="new" style="display:none">New video</button></div></header>
+
+<section id="home">
+<div class="hero"><h1>Captions, <em>written</em> for you.</h1>
+<p>Upload a video and AutCap listens, writes and styles your captions. Free, private, entirely in your browser.</p>
+<label class="drop" style="display:block;cursor:pointer" id="dz"><h3>Drop your video here</h3><span>or click to browse · MP4, MOV, WebM</span><input id="file" type="file" accept="video/*" hidden></label></div>
+<div class="feat"><div><b>Auto captions</b><p>One click speech-to-text with timing.</p></div><div><b>Cool styles</b><p>Six looks, from classic serif to karaoke.</p></div><div><b>Full control</b><p>Size, colour and position, live.</p></div><div><b>Export free</b><p>Burn into video or download SRT.</p></div></div>
+</section>
+
+<section id="ed">
+<div><div class="stage"><video id="v" playsinline></video><div id="cap"></div></div>
+<div class="bar"><button class="p" id="pp">Play</button><input type="range" id="sk" min="0" max="1000" value="0"><span class="t" id="tm">0:00 / 0:00</span></div></div>
+<div class="panel">
+<h2>Auto Captions</h2>
+<button class="p" id="gen">✦ Generate auto captions</button>
+<label>Language<select id="lang" style="width:60%"><option value="en-US">English</option><option value="en-GB">English (UK)</option><option value="es-ES">Español</option><option value="fr-FR">Français</option><option value="de-DE">Deutsch</option><option value="hi-IN">हिन्दी</option><option value="ur-PK">اردو</option><option value="ar-SA">العربية</option></select></label>
+<div id="msg"></div>
+<div><label>Style</label><div class="styles" id="styles"></div></div>
+<label>Size <input type="range" id="sz" min="2.5" max="9" step=".1" value="5"></label>
+<div class="lb">Colour <span style="display:flex;align-items:center;gap:7px"><i class="sw" data-c="#ffffff" style="background:#fff"></i><i class="sw" data-c="#ffd43b" style="background:#ffd43b"></i><i class="sw" data-c="#d4af62" style="background:#d4af62"></i><i class="sw" data-c="#22d3ee" style="background:#22d3ee"></i><i class="sw" data-c="#ff6b9d" style="background:#ff6b9d"></i><input type="color" id="col" value="#ffffff"></span></div>
+<label>Position <input type="range" id="pos" min="8" max="92" value="82"></label>
+<div class="flex"><button data-p="12">Top</button><button data-p="50">Middle</button><button data-p="82">Bottom</button></div>
+<h2 style="font-size:18px">Color grading</h2><div class="flex" id="gr"></div>
+<label>Brightness <input type="range" id="g_b" min="60" max="140" value="100"></label>
+<label>Contrast <input type="range" id="g_c" min="60" max="150" value="100"></label>
+<label>Saturation <input type="range" id="g_s" min="0" max="200" value="100"></label>
+<label>Warmth <input type="range" id="g_w" min="-50" max="50" value="0"></label>
+<div class="flex"><button class="p" id="prev">▶ Preview with captions</button><button id="tg" class="on">Captions on</button></div>
+<h2 style="font-size:18px">Captions</h2><div id="list"></div>
+<div class="flex"><button id="add">+ Add line</button><button id="trb">Paste transcript</button><button id="srt">Download SRT</button><button id="exp" class="p">Export video</button></div>
+<details id="trd" open><summary style="cursor:pointer;font-weight:600;font-size:15px;margin-bottom:6px">Transcript &amp; SRT import</summary><textarea id="tx" rows="3" placeholder="Paste or type what is said…"></textarea><button id="fit" style="margin-top:6px">Fit transcript to video</button><label style="margin-top:10px">Or import an .srt file <input type="file" id="srtin" accept=".srt,.vtt" style="max-width:55%"></label></details>
+</div></section>
+
+<script>
+const $=id=>document.getElementById(id),v=$('v'),cap=$('cap');
+const SER="'Playfair Display',Georgia,serif",SAN="'Arial Black',Impact,sans-serif";
+const ST=[
+{n:'Classic Serif',f:SER,w:800,o:1},
+{n:'Bold Pop',f:SAN,w:900,o:1,u:1,h:'#ffd43b'},
+{n:'Gold Box',f:SER,w:800,bg:'rgba(0,0,0,.75)',h:'#e8c468'},
+{n:'Karaoke',f:SAN,w:900,o:1,h:'#4ade80'},
+{n:'Clean',f:'Inter,Arial,sans-serif',w:600,sh:1},
+{n:'Neon',f:SAN,w:900,g:1,h:'#22d3ee'}];
+let segs=[],si=0,sz=5,col='#ffffff',pos=82,show=true;
+const fmt=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
+const msg=t=>$('msg').textContent=t;
+$('styles').innerHTML=ST.map((s,i)=>`<div><button class="sc" data-i="${i}" style="font-family:${s.f};font-weight:${s.w};${s.bg?'background:'+s.bg+';':''}${s.o?'text-shadow:0 0 3px #000,0 0 3px #000;':''}${s.g?'text-shadow:0 0 8px '+s.h+';color:'+s.h+';':''}">${s.u?'CAPTION':'Caption'}</button><div class="sn">${s.n}</div></div>`).join('');
+const selS=()=>{document.querySelectorAll('.sc').forEach((b,i)=>b.classList.toggle('sel',i==si))};selS();
+$('styles').onclick=e=>{const b=e.target.closest('.sc');if(b){si=+b.dataset.i;selS();draw()}};
+$('th').onclick=e=>{const d=document.documentElement,dk=matchMedia('(prefers-color-scheme:dark)').matches;const sw=()=>{const cur=d.dataset.theme||(dk?'dark':'light');d.dataset.theme=cur=='dark'?'light':'dark'};if(!document.startViewTransition){sw();return}const r=$('th').getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2,R=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));const t=document.startViewTransition(sw);t.ready.then(()=>d.animate({clipPath:[`circle(0px at ${x}px ${y}px)`,`circle(${R}px at ${x}px ${y}px)`]},{duration:700,easing:'ease-in-out',pseudoElement:'::view-transition-new(root)'}))};
+document.querySelectorAll('.sw').forEach(s=>s.onclick=()=>{col=s.dataset.c;$('col').value=col;draw()});
+$('trb').onclick=()=>{$('trd').open=true;$('tx').scrollIntoView({behavior:'smooth',block:'center'});$('tx').focus()};
+
+function load(f){v.src=URL.createObjectURL(f);v.onloadedmetadata=()=>{$('home').style.display='none';$('ed').classList.add('show');$('new').style.display='';segs=[];list();draw();msg('Ready. Hit “Generate auto captions”.')}}
+$('file').onchange=e=>e.target.files[0]&&load(e.target.files[0]);
+$('dz').ondragover=e=>e.preventDefault();$('dz').ondrop=e=>{e.preventDefault();e.dataTransfer.files[0]&&load(e.dataTransfer.files[0])};
+$('new').onclick=()=>location.reload();
+
+// player
+$('pp').onclick=()=>v.paused?v.play():v.pause();v.onclick=$('pp').onclick;
+v.onplay=()=>$('pp').textContent='Pause';v.onpause=()=>$('pp').textContent='Play';
+$('sk').oninput=e=>v.currentTime=e.target.value/1000*v.duration;
+v.ontimeupdate=()=>{$('sk').value=v.currentTime/v.duration*1000;$('tm').textContent=fmt(v.currentTime)+' / '+fmt(v.duration);draw()};
+function cur(){return segs.find(s=>v.currentTime>=s.s&&v.currentTime<s.e)}
+function sty(s){const a=ST[si];let o=`font-family:${a.f};font-weight:${a.w};color:${col};`;if(a.o)o+='text-shadow:0 0 .06em #000,0 0 .06em #000,0 .04em .1em #000;';if(a.sh)o+='text-shadow:0 .05em .15em rgba(0,0,0,.9);';if(a.g)o+=`color:${col=='#ffffff'?a.h:col};text-shadow:0 0 .2em ${a.h},0 0 .5em ${a.h};`;return o}
+function draw(){const c=cur(),a=ST[si];cap.style.setProperty('--s',sz);cap.style.top=pos+'%';
+if(!c||!show){cap.innerHTML='';return}
+const ws=c.t.split(/\s+/),p=(v.currentTime-c.s)/(c.e-c.s),k=Math.floor(p*ws.length);
+const html=ws.map((w,i)=>{if(a.u)w=w.toUpperCase();const hl=a.h&&!a.g&&(a.n=='Karaoke'?i==k:i==k&&0)||(a.n=='Bold Pop'&&i==k);return `<span style="${hl?'color:'+a.h:''}">${w}</span>`}).join(' ');
+cap.innerHTML=`<div style="${sty()}${a.bg?'background:'+a.bg+';display:inline-block;padding:.2em .5em;border-radius:.25em':''}">${html}</div>`}
+$('sz').oninput=e=>{sz=+e.target.value;draw()};$('col').oninput=e=>{col=e.target.value;draw()};$('pos').oninput=e=>{pos=+e.target.value;draw()};
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{pos=+b.dataset.p;$('pos').value=pos;draw()});
+$('tg').onclick=()=>{show=!show;$('tg').classList.toggle('on',show);$('tg').textContent=show?'Captions on':'Captions off';draw()};
+$('prev').onclick=()=>{show=true;$('tg').classList.add('on');v.currentTime=0;v.play()};
+
+// captions data
+function chunk(text,a,b){const w=text.trim().split(/\s+/).filter(Boolean),n=5,g=Math.ceil(w.length/n);for(let i=0;i<g;i++){const p=w.slice(i*n,i*n+n);segs.push({s:a+(b-a)*i/g,e:a+(b-a)*(i+1)/g,t:p.join(' ')})}}
+function list(){segs.sort((x,y)=>x.s-y.s);$('list').innerHTML=segs.length?segs.map((s,i)=>`<div class="row"><input type="number" step=".1" value="${s.s.toFixed(1)}" data-i="${i}" data-k="s"><input type="number" step=".1" value="${s.e.toFixed(1)}" data-i="${i}" data-k="e"><input type="text" value="${s.t.replace(/"/g,'&quot;')}" data-i="${i}" data-k="t"><button data-d="${i}">×</button></div>`).join(''):'<span style="color:var(--mu);font-size:14px">No captions yet.</span>'}
+$('list').oninput=e=>{const d=e.target.dataset;if(d.k){segs[d.i][d.k]=d.k=='t'?e.target.value:+e.target.value;draw()}};
+$('list').onclick=e=>{const d=e.target.dataset.d;if(d!=null){segs.splice(d,1);list();draw()}};
+$('add').onclick=()=>{segs.push({s:v.currentTime,e:Math.min(v.duration,v.currentTime+2.5),t:'New caption'});list();draw()};
+$('fit').onclick=()=>{const t=$('tx').value.trim();if(!t)return;segs=[];chunk(t,0,v.duration);list();draw();msg('Transcript fitted. Edit timings below if needed.')};
+
+// auto captions via browser speech recognition
+let rec;
+$('gen').onclick=()=>{
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SR){msg('Speech recognition isn’t supported in this browser. Use Chrome or Edge, or paste a transcript below.');return}
+segs=[];list();let last=0;rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang=$('lang').value;
+rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(!e.results[i].isFinal)msg('Hearing: '+e.results[i][0].transcript);else{const t=v.currentTime;chunk(e.results[i][0].transcript,last,Math.max(t,last+.5));last=t}list();draw()};
+rec.onerror=e=>{if(e.error=='no-speech'||e.error=='aborted')return;msg(e.error=='not-allowed'||e.error=='service-not-allowed'?'Microphone/speech access is blocked here. Open the AutCap link in its own Chrome or Edge tab (not inside a preview), allow the mic, and try again. Or use the transcript box below.':e.error=='network'?'Speech service unreachable. Check your internet connection (or VPN), or use the transcript box below.':e.error=='language-not-supported'?'That language isn’t supported for this input. Try English.':'Recognition error: '+e.error)};
+rec.onend=()=>{if(!v.ended&&!v.paused&&rec.run){try{rec.start()}catch(_){}}};
+v.currentTime=0;v.muted=false;show=true;rec.run=1;let got=0;const og=rec.onresult;rec.onresult=e=>{got=1;og(e)};
+v.play().then(()=>{let tr=null;try{tr=(v.captureStream?v.captureStream():v.mozCaptureStream()).getAudioTracks()[0]}catch(_){}
+try{tr?rec.start(tr):rec.start();msg(tr?'Listening to the video’s audio…':'Listening via microphone. Use speakers, not headphones, and allow mic access.')}catch(_){try{rec.start();msg('Listening via microphone. Use speakers, not headphones.')}catch(__){msg('Could not start recognition.')}}
+setTimeout(()=>{if(!got&&rec.run&&tr){try{rec.abort()}catch(_){};msg('No speech picked up from the video track, switching to microphone. Use speakers (not headphones) and allow mic access.')}},7000)}).catch(()=>msg('Press Play once, then try again.'));
+v.onended=()=>{rec.run=0;try{rec.stop()}catch(_){}msg(segs.length?'Done! Pick a style and tweak the text.':'No speech detected. Try the transcript box below.')}};
+
+// color grading
+const G={b:100,c:100,s:100,w:0},PR={Original:[100,100,100,0],Cinematic:[98,125,110,12],Vintage:[105,90,80,35],Noir:[95,135,0,0],Warm:[105,105,115,40],Cool:[100,105,100,-35],Vivid:[105,115,160,0]};
+const flt=()=>`brightness(${G.b}%) contrast(${G.c}%) saturate(${G.s}%) sepia(${Math.max(0,G.w)/150}) hue-rotate(${Math.min(0,G.w)*.5}deg)`;
+const grade=()=>{v.style.filter=flt();['b','c','s','w'].forEach(k=>$('g_'+k).value=G[k])};
+$('gr').innerHTML=Object.keys(PR).map(n=>`<button data-n="${n}">${n}</button>`).join('');
+$('gr').onclick=e=>{const p=PR[e.target.dataset.n];if(p){[G.b,G.c,G.s,G.w]=p;grade()}};
+['b','c','s','w'].forEach(k=>$('g_'+k).oninput=e=>{G[k]=+e.target.value;v.style.filter=flt()});
+// export
+$('srtin').onchange=async e=>{const f=e.target.files[0];if(!f)return;const T=s=>{const m=s.trim().match(/(?:(\d+):)?(\d+):(\d+)[.,](\d+)/);return m?(+(m[1]||0))*3600+ +m[2]*60+ +m[3]+ +('0.'+m[4]):0};segs=[];(await f.text()).replace(/\r/g,'').split(/\n\n+/).forEach(b=>{const L=b.split('\n'),i=L.findIndex(l=>l.includes('-->'));if(i<0)return;const[a,z]=L[i].split('-->');const t=L.slice(i+1).join(' ').replace(/<[^>]+>/g,'').trim();if(t)segs.push({s:T(a),e:T(z),t})});list();draw();msg(segs.length?'Imported '+segs.length+' captions.':'Couldn\u2019t read that file.')};
+const tc=t=>{const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=Math.floor(t%60),ms=Math.floor(t%1*1000);return[h,m,s].map(x=>String(x).padStart(2,'0')).join(':')+','+String(ms).padStart(3,'0')};
+function dl(blob,n){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=n;a.click()}
+$('srt').onclick=()=>dl(new Blob([segs.map((s,i)=>`${i+1}\n${tc(s.s)} --> ${tc(s.e)}\n${s.t}\n`).join('\n')],{type:'text/plain'}),'autcap.srt');
+$('exp').onclick=()=>{
+if(!segs.length){msg('Generate or add captions first.');return}
+const W=Math.min(v.videoWidth,1280),H=Math.round(W*v.videoHeight/v.videoWidth),c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),a=ST[si];
+const cs=c.captureStream(30);try{v.captureStream().getAudioTracks().forEach(t=>cs.addTrack(t))}catch(_){}
+const mr=new MediaRecorder(cs),ch=[];mr.ondataavailable=e=>ch.push(e.data);mr.onstop=()=>{dl(new Blob(ch,{type:'video/webm'}),'autcap-video.webm');msg('Exported!')};
+const fs=W*sz/100;let go=1;
+(function f(){if(!go)return;x.filter=flt();x.drawImage(v,0,0,W,H);x.filter='none';const s=cur();if(s&&show){let t=a.u?s.t.toUpperCase():s.t;x.font=`${a.w} ${fs}px ${a.f}`;x.textAlign='center';x.textBaseline='middle';const ls=[];let l='';t.split(' ').forEach(w=>{if(x.measureText(l+' '+w).width>W*.86&&l){ls.push(l);l=w}else l=l?l+' '+w:w});ls.push(l);
+ls.forEach((L,i)=>{const y=H*pos/100+(i-(ls.length-1)/2)*fs*1.25;if(a.bg){x.fillStyle=a.bg;const w=x.measureText(L).width+fs;x.fillRect(W/2-w/2,y-fs*.65,w,fs*1.3)}
+if(a.o){x.lineWidth=fs*.14;x.strokeStyle='#000';x.lineJoin='round';x.strokeText(L,W/2,y)}
+x.shadowColor=a.g?a.h:'rgba(0,0,0,.8)';x.shadowBlur=a.g?fs*.4:a.sh?fs*.2:0;x.fillStyle=a.g&&col=='#ffffff'?a.h:col;x.fillText(L,W/2,y);x.shadowBlur=0})}
+requestAnimationFrame(f)})();
+v.currentTime=0;v.muted=false;mr.start();v.play();msg('Exporting in real time… please wait for the video to finish.');
+v.onended=()=>{go=0;mr.stop()}};
+</script></body></html>
